@@ -1,12 +1,10 @@
-# Free ai local api
+
 
 # Установка
 
 ```bash
-pip install fastapi uvicorn
+pip install fastapi uvicorn llmf
 ```
-
-Модуль llmf должен лежать рядом с main.py.
 
 # Запуск
 
