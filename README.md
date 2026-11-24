@@ -1,8 +1,6 @@
-Free ai local api
+# Free ai local api
 
-Прокси к LLM через FastAPI.
-
-Установка
+# Установка
 
 ```bash
 pip install fastapi uvicorn
@@ -10,7 +8,7 @@ pip install fastapi uvicorn
 
 Модуль llmf должен лежать рядом с main.py.
 
-Запуск
+# Запуск
 
 ```bash
 python main.py
@@ -18,13 +16,13 @@ python main.py
 
 Сервер: http://0.0.0.0:11996
 
-Эндпоинт
+# Эндпоинт
 
 GET /ai?request=<текст>&model=<модель>
 
 Модели: qwen-coder, gpt-4o, luna
 
-Ответ:
+# Ответ:
 
 ```json
 {"response": "...", "model": "gpt-4o"}
@@ -32,7 +30,7 @@ GET /ai?request=<текст>&model=<модель>
 
 Ошибки: 400 — неизвестная модель, 500 — ошибка LLM.
 
-Пример
+# Пример
 
 ```bash
 curl "http://localhost:11996/ai?request=Привет&model=gpt-4o"
@@ -41,19 +39,4 @@ curl "http://localhost:11996/ai?request=Привет&model=gpt-4o"
 ```python
 import requests
 print(requests.get("http://localhost:11996/ai",
-      params={"request": "Привет", "model": "luna"}).json())
-```
-
-Новая модель
-
-```python
-MODELS = {
-    ...
-    "my-model": ("freeai", "real-model-name"),
-}
-```
-
-Заметки
-
-· Аутентификации нет — не выставляйте наружу без прокси/ключа.
-· Длинные промпты лучше через POST (добавляется тривиально).
+      params={"request": "Привет", "model": "luna"})
