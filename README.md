@@ -18,7 +18,7 @@ python main.py
 
 GET /ai?request=<текст>&model=<модель>
 
-Модели: qwen-coder, gpt-4o, luna
+# ⚡️ Модели: qwen-coder, gpt-4o, luna, claude haiku 5.5
 
 # Ответ:
 
