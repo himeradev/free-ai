@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>free-ai</title>
+<style>
+  :root { --ease: cubic-bezier(0.22, 1, 0.36, 1); }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141415; --card: #19191b; --raised: #232325; --hair: rgba(237, 237, 237, .08);
+      --text: #ededed; --text-2: #a1a1a6; --muted: #85858b;
+      --ok: #4cc38a; --bad: #e5484d; --btn: #ededed; --btn-text: #141415;
+    }
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #fafafa; --card: #ffffff; --raised: #f4f4f5; --hair: rgba(23, 23, 23, .08);
+      --text: #171717; --text-2: #525252; --muted: #737373;
+      --ok: #16a34a; --bad: #dc2626; --btn: #171717; --btn-text: #ffffff;
+    }
+  }
+  :root { color-scheme: light dark }
+
+  * { box-sizing: border-box }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 400 14px/22px ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; cursor: pointer }
+  button:disabled { cursor: default; color: var(--muted) }
+  :focus-visible { outline: 2px solid var(--text); outline-offset: 2px }
+  .mono { font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px 64px }
+
+  .bar { display: flex; align-items: center; justify-content: space-between; height: 56px }
+  .brand { font-size: 16px; line-height: 1; font-weight: 500 }
+  .brand span { color: var(--muted) }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px;
+    border: 1px solid var(--hair); border-radius: 8px; background: var(--raised);
+    font-size: 14px; line-height: 1; font-weight: 500; white-space: nowrap;
+    transition: background-color 150ms var(--ease), color 150ms var(--ease), transform 120ms var(--ease);
+  }
+  .btn:hover:not(:disabled) { background: var(--hair) }
+  .btn:active:not(:disabled) { transform: scale(.98) }
+  .btn-primary { height: 40px; padding: 0 16px; border: 0; background: var(--btn); color: var(--btn-text) }
+  .btn-primary:hover:not(:disabled) { background: var(--btn); opacity: .88 }
+  .btn svg { width: 16px; height: 16px; flex: none; stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round }
+
+  h1 { margin: 40px 0 0; font-size: 28px; line-height: 1.15; font-weight: 500 }
+  .summary { margin: 8px 0 0; color: var(--text-2) }
+  .summary b { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums }
+  .scan { margin: 4px 0 0; font-size: 13px; line-height: 20px; color: var(--muted) }
+
+  .panel { margin-top: 24px; padding: 20px; border: 1px solid var(--hair); border-radius: 16px; background: var(--card) }
+  .panel h2 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 500 }
+  .panel p { margin: 4px 0 16px; color: var(--text-2) }
+  .address { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px }
+  .address code {
+    display: flex; align-items: center; height: 40px; padding: 0 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    border-radius: 8px; background: var(--raised); font-size: 14px; color: var(--text)
+  }
+
+  .list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 12px }
+
+  .card {
+    padding: 20px; border: 1px solid var(--hair); border-radius: 16px; background: var(--card);
+    animation: rise 400ms var(--ease) both; animation-delay: calc(var(--i) * 50ms);
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+  @media (prefers-reduced-motion: reduce) { .card { animation: none } }
+  .list.still .card { animation: none }
+
+  .head { display: flex; align-items: center; justify-content: space-between; gap: 16px }
+  .name { font-size: 15px; line-height: 20px; font-weight: 500 }
+  .meta { margin-top: 2px; font-size: 13px; line-height: 20px; color: var(--muted) }
+  .status { display: inline-flex; align-items: center; gap: 8px; color: var(--text-2); white-space: nowrap }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex: none }
+  .dot.up { background: var(--ok) }
+  .dot.down { background: var(--bad) }
+
+  .strip { display: grid; grid-template-columns: repeat(96, minmax(0, 1fr)); gap: 2px; height: 16px; margin-top: 20px }
+  .strip i { border-radius: 2px; background: var(--hair) }
+  .strip i.c1 { background: var(--ok) }
+  .strip i.c2 { background: var(--ok); opacity: .5 }
+  .strip i.c3 { background: var(--bad) }
+  .strip i.c0 { background: var(--hair) }
+  .axis { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; line-height: 16px; color: var(--muted) }
+  .axis b { color: var(--text-2); font-weight: 400 }
+
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 16px }
+  .stat { padding: 12px; border-radius: 8px; background: var(--raised) }
+  .stat small { display: block; font-size: 12px; line-height: 16px; color: var(--muted) }
+  .stat strong { display: block; margin-top: 2px; font-size: 16px; line-height: 20px; font-weight: 500; font-variant-numeric: tabular-nums }
+
+  .copy-id { width: 100%; margin-top: 12px; padding: 0 12px; height: 36px; justify-content: space-between; text-align: left; font-weight: 400; }
+  .copy-id code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px }
+  .copy-id .how { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); flex: none }
+
+  details { margin-top: 24px }
+  summary { display: flex; align-items: center; height: 36px; font-weight: 500; list-style: none; cursor: pointer; color: var(--text-2) }
+  summary::-webkit-details-marker { display: none }
+  summary b { margin-left: 8px; color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums }
+  .down-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--hair) }
+  .down-row:first-of-type { border-top: 0 }
+  .down-row span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+  .down-row small { display: block; font-size: 13px; color: var(--muted) }
+  .down-row .err { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; font-size: 13px; color: var(--muted) }
+
+  .notice { margin-top: 12px; padding: 20px; border: 1px solid var(--hair); border-radius: 16px; color: var(--text-2) }
+
+  @media (max-width: 480px) {
+    .wrap { padding: 0 16px 48px }
+    h1 { margin-top: 32px; font-size: 24px }
+    .strip { gap: 1px }
+    .down-row { grid-template-columns: minmax(0, 1fr) }
+    .down-row .err { text-align: left }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <div class="brand">free-ai <span>/ v1</span></div>
+    <button class="btn" id="refresh" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+      <span>Проверить</span>
+    </button>
+  </header>
+
+  <main>
+    <h1>Модели</h1>
+    <p class="summary" id="summary">Загружается</p>
+    <p class="scan" id="scan" aria-live="polite"></p>
+
+    <section class="panel">
+      <h2>Адрес сервера</h2>
+      <p>Вставьте в клиент как адрес OpenAI-совместимого API. Ключ не нужен, подойдёт любое значение.</p>
+      <div class="address">
+        <code id="base">...</code>
+        <button class="btn btn-primary" id="copy-base" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <span>Скопировать</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="list" id="list" aria-live="polite"></section>
+
+    <details id="down" hidden>
+      <summary>Недоступны <b id="down-count"></b></summary>
+      <div id="down-list"></div>
+    </details>
+  </main>
+</div>
+
+<script>
+  const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  const TAGS = { code: 'код', best: 'лучшие', fast: 'быстрые', vision: 'картинки', reasoning: 'рассуждения' };
+  const base = location.origin + '/v1';
+  const timers = new WeakMap();
+
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const num = (v, digits = 0) => v.toLocaleString('ru-RU', { maximumFractionDigits: digits });
+
+  function titleCase(word) {
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  }
+
+  function pretty(key) {
+    const parts = key.replace(':free', '').split('/');
+    const tail = parts[parts.length - 1];
+    const name = ['free', 'small'].includes(tail) && parts.length > 1 ? parts[parts.length - 2] + '/' + tail : tail;
+    const m = name.match(/^(gpt-oss|gpt|qwen|llama|claude|gemini|codestral|nemotron|debate|openai|openrouter)/i);
+    if (!m) {
+      return name.replace(/[-_]/g, ' ').split(' ').map(titleCase).join(' ').replace(/(\d+)b\b/gi, '$1B');
+    }
+    const heads = { gpt: 'GPT-', 'gpt-oss': 'GPT-OSS', openai: 'OpenAI', openrouter: 'OpenRouter' };
+    const head = heads[m[1].toLowerCase()] || titleCase(m[1]);
+    const keep = { vl: 'VL' };
+    const rest = name.slice(m[1].length).replace(/[-_:]/g, ' ').trim().split(/\s+/)
+      .map((w) => keep[w.toLowerCase()] || titleCase(w)).join(' ');
+    const join = head.endsWith('-') ? '' : ' ';
+    return (head + join + rest).replace(/(\d+)b\b/gi, '$1B').trim();
+  }
+
+  function ago(seconds) {
+    if (seconds < 60) return 'только что';
+    const m = Math.floor(seconds / 60);
+    return m < 60 ? m + ' мин назад' : Math.floor(m / 60) + ' ч назад';
+  }
+
+  async function copy(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+      ta.remove();
+      return ok;
+    }
+  }
+
+  function flash(btn, label) {
+    if (!btn.dataset.label) {
+      btn.dataset.label = btn.querySelector('span').textContent;
+      btn.dataset.icon = btn.querySelector('svg').outerHTML;
+    }
+    const swap = (html, text) => {
+      btn.querySelector('svg').outerHTML = html;
+      btn.querySelector('span').textContent = text;
+    };
+    clearTimeout(timers.get(btn));
+    swap(CHECK, label);
+    timers.set(btn, setTimeout(() => swap(btn.dataset.icon, btn.dataset.label), 1400));
+  }
+
+  async function onCopy(btn, getText) {
+    if (btn.disabled) return;
+    const ok = await copy(getText());
+    flash(btn, ok ? 'Скопировано' : 'Не вышло');
+  }
+
+  function card(m, i) {
+    const cells = m.timeline.map((c) => '<i class="c' + c + '"></i>').join('');
+    const status = m.status === 'up' ? 'Работает' : 'Без проверки';
+    const tags = m.tags.map((t) => TAGS[t]).filter(Boolean);
+    if (m.vision && !tags.includes(TAGS.vision)) tags.push(TAGS.vision);
+    const meta = [m.provider].concat(tags).join(' · ');
+    const uptime = m.uptime_24h === null ? 'Нет данных' : 'Аптайм ' + num(m.uptime_24h, 1) + '%';
+    const avg = m.avg_response_s === null ? '—' : num(m.avg_response_s, 1) + ' с';
+    return (
+      '<article class="card" style="--i:' + Math.min(i, 6) + '">' +
+        '<div class="head">' +
+          '<div><div class="name">' + esc(pretty(m.model)) + '</div>' +
+          '<div class="meta">' + esc(meta) + '</div></div>' +
+          '<span class="status"' + (m.note ? ' title="' + esc(m.note) + '"' : '') + '><i class="dot ' + m.status + '"></i>' + status + '</span>' +
+        '</div>' +
+        '<div class="strip" title="' + esc(uptime) + '">' + cells + '</div>' +
+        '<div class="axis mono"><span>24 ч назад</span><b>' + esc(uptime) + '</b><span>сейчас</span></div>' +
+        '<div class="stats">' +
+          '<div class="stat"><small>Ответ</small><strong>' + esc(avg) + '</strong></div>' +
+          '<div class="stat"><small>Запросы за 24 ч</small><strong>' + num(m.requests_24h) + '</strong></div>' +
+          '<div class="stat"><small>Ошибки за 24 ч</small><strong>' + num(m.failed_24h) + '</strong></div>' +
+        '</div>' +
+        '<button class="btn copy-id" type="button" data-id="' + esc(m.model) + '" aria-label="Скопировать id ' + esc(m.model) + '">' +
+          '<code>' + esc(m.model) + '</code>' +
+          '<span class="how"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>Id для клиента</span>' +
+        '</button>' +
+      '</article>'
+    );
+  }
+
+  function render(data) {
+    const all = data.models;
+    const live = all.filter((m) => m.status !== 'down');
+    const down = all.filter((m) => m.status === 'down');
+    const up = all.filter((m) => m.status === 'up').length;
+
+    document.getElementById('summary').innerHTML = '<b>' + up + '</b> из <b>' + all.length + '</b> отвечают на проверке';
+    document.getElementById('scan').textContent = data.scanning
+      ? 'Идёт проверка моделей'
+      : data.scanned_ago === null ? '' : 'Проверено ' + ago(data.scanned_ago) + ', следующая через ' + num(Math.ceil(data.next_scan_in / 60)) + ' мин';
+    document.getElementById('refresh').disabled = !!data.scanning;
+    document.getElementById('list').innerHTML = live.length ? live.map(card).join('') : '<div class="notice">Нет моделей для показа</div>';
+    document.getElementById('list').classList.add('still');
+
+    document.getElementById('down').hidden = !down.length;
+    document.getElementById('down-count').textContent = num(down.length);
+    document.getElementById('down-list').innerHTML = down.map((m) =>
+      '<div class="down-row"><span>' + esc(pretty(m.model)) + '<small class="mono">' + esc(m.model) + '</small></span>' +
+      '<span class="err" title="' + esc(m.error || '') + '">' + esc(m.error || 'не отвечает') + '</span></div>'
+    ).join('');
+  }
+
+  async function poll() {
+    let scanning = true;
+    try {
+      const res = await fetch('models?include_down=true', { cache: 'no-store' });
+      if (!res.ok) throw new Error(res.status);
+      const data = await res.json();
+      render(data);
+      scanning = !!data.scanning;
+    } catch (e) {
+      document.getElementById('summary').textContent = 'Сервер не отвечает';
+      document.getElementById('scan').textContent = '';
+    }
+    setTimeout(poll, scanning ? 3000 : 15000);
+  }
+
+  document.getElementById('base').textContent = base;
+  document.getElementById('copy-base').addEventListener('click', (e) => onCopy(e.currentTarget, () => base));
+  document.getElementById('list').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-id]');
+    if (btn) onCopy(btn, () => btn.dataset.id);
+  });
+  document.getElementById('refresh').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    document.getElementById('scan').textContent = 'Идёт проверка моделей';
+    try { await fetch('refresh', { method: 'POST' }); } catch (_) {}
+  });
+
+  poll();
+</script>
+</body>
+</html>
